@@ -1,0 +1,26 @@
+##
+###converting image to pencile sketch
+##import cv2
+##
+##image = cv2.imread(r"C:/Users/Ibrahim Shaik/Pictures/Camera Roll/WIN_20210810_18_48_45_Pro.jpg")
+##image = cv2.resize(image, (600, 600)) #resize-crop
+##cv2.imshow("Before", image) #acts asprint statement
+##cv2.waitKey(0)
+###convering to black and white
+##gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+##cv2.imshow("After", gray_image)
+##cv2.waitKey(0)
+###converting to thick black
+##inverted_image = 255 - gray_image
+##cv2.imshow("Inverted", inverted_image)
+##cv2.waitKey()
+###converting to pencil sketch
+##blurred = cv2.GaussianBlur(inverted_image, (21, 21), 0)
+##inverted_blurred = 255 - blurred
+##pencil_sketch = cv2.divide(gray_image, inverted_blurred, scale=256.0)
+##cv2.imshow("Sketch", pencil_sketch)
+##cv2.waitKey(0)
+###cv2.imshow("original image", image)
+##cv2.imshow("pencil sketch", pencil_sketch)
+##cv2.waitKey(0)
+##
