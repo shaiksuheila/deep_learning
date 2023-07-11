@@ -1,0 +1,112 @@
+import os
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
+from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.models import load_model
+from google.colab import drive
+
+import pandas as pd
+drive.mount('/content/drive')
+
+#Directory with tulip images
+tulip_dir= os.path.join(r'/content/drive/MyDrive/deeplearning/flowers/tulip')
+
+#Directory wuth sunflower images
+sf_dir= os.path.join(r'/content/drive/MyDrive/deeplearning/flowers/sunflower')
+
+#Directory with rose images
+rose_dir = os.path.join(r'/content/drive/MyDrive/deeplearning/flowers/rose')
+
+#Directory with dandelion images
+dandelion_dir = os.path.join(r'/content/drive/MyDrive/deeplearning/flowers/dandelion')
+
+#directory with daisy images
+daisye_dir = os.path.join(r'/content/drive/MyDrive/deeplearning/flowers/daisy')
+
+train_tulip_names = os.listdir(tulip_dir)
+print(train_tulip_names[:5])
+
+train_sf_names = os.listdir(sf_dir) #to get within images from particular folder
+print(train_sf_names[:5])
+
+batch_size = 16
+#All images will be rescaled by 1./255(number of pixel size should be decreases)
+train_datagen = ImageDataGenerator(rescale=1./255)
+
+#Flow training images in batches of 128 using train_datagen
+train_generator = train_datagen.flow_from_directory('/content/drive/MyDrive/deeplearning/flowers',
+                                                    target_size=(300,300), #All images will be resized
+                                                    batch_size=batch_size,
+                                                    color_mode='grayscale',#specify the classes explicitly(gray-converts to black and white to decrease the pixel value)
+                                                    classes = ['daisy','dandelion','rose','sunflower','tulip'],
+                                                    #since we use categorical_crossentropy loss,we need
+                                                    class_mode='categorical')
+target_size=(300,300)
+
+model = tf.keras.models.Sequential([
+#Note the input shape is the desired size of the image 48*48 with 3 byte color
+#The first convolutioin
+tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(300,300,1)),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#The second convolution
+tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#the third convolution
+tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#Flatten the results to feed into a dense layer
+tf.keras.layers.Flatten(),
+#64 neuron in the fully-connected layer
+tf.keras.layers.Dense(64, activation='relu'),
+#5 output neurons for 5 classes with the softmax activation
+tf.keras.layers.Dense(5,activation='softmax')
+])
+
+
+model.summary()
+
+model.compile(loss='categorical_crossentropy',
+              optimizer=tf.keras.optimizers.Adam(lr=0.001),
+              metrics=['acc'])#RMSprop(lr=0.001),
+              
+model = tf.keras.models.Sequential([
+#Note the input shape is the desired size of the image 48*48 with 3 byte color
+#The first convolutioin
+tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(300,300,1)),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#The second convolution
+tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#the third convolution
+tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+tf.keras.layers.MaxPooling2D(2, 2),
+
+#Flatten the results to feed into a dense layer
+tf.keras.layers.Flatten(),
+#64 neuron in the fully-connected layer
+tf.keras.layers.Dense(64, activation='relu'),
+#5 output neurons for 5 classes with the softmax activation
+tf.keras.layers.Dense(5,activation='softmax')
+])
+
+
+#Total sample count
+total_sample=train_generator.n
+
+#Trainiing
+num_epochs = 3
+model.fit_generator(train_generator,
+                    steps_per_epoch=int(total_sample/batch_size),
+                    epochs=num_epochs,
+                    verbose=1)
+
+#serialize model to JSON
+model_json = model.to_json()
+with open(r'/content/drive/MyDrive/deeplearning/flowers/modelGG.json', "w") as json_file:
+    print(json_file.write(model_json))
